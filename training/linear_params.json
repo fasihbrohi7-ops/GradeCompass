@@ -1,28 +1,124 @@
 {
-  "weights": [
-    1.021553107277341,
-    -1.0215531072773405,
-    -0.5985450965113501,
-    -0.8935097808280303,
-    -0.5686754329864118,
-    0.7163053490394101,
-    1.3478882755684871,
-    -0.8246047842851378,
-    -1.425771860770535,
-    0.09643227246436872,
-    0.4518189424724877,
-    1.4903495224208945,
-    0.7084140643746621,
-    2.1903815523527315,
-    -2.190381552352732,
-    -1.8771558532787551,
-    1.8771558532787551
+  "feature_order": [
+    "gender_female",
+    "gender_male",
+    "race_group_A",
+    "race_group_B",
+    "race_group_C",
+    "race_group_D",
+    "race_group_E",
+    "parent_edu_some_high_school",
+    "parent_edu_high_school",
+    "parent_edu_some_college",
+    "parent_edu_associates_degree",
+    "parent_edu_bachelors_degree",
+    "parent_edu_masters_degree",
+    "lunch_standard",
+    "lunch_free_reduced",
+    "test_prep_none",
+    "test_prep_completed"
   ],
-  "bias": 68.16916666666665,
-  "pass_threshold": 60,
-  "metrics": {
-    "r2": 0.16217185763155217,
-    "mae": 10.490182374209294,
-    "test_samples": 200
+  "categorical_options": {
+    "gender": [
+      "female",
+      "male"
+    ],
+    "race_ethnicity": [
+      "group A",
+      "group B",
+      "group C",
+      "group D",
+      "group E"
+    ],
+    "parental_education": [
+      "some high school",
+      "high school",
+      "some college",
+      "associate's degree",
+      "bachelor's degree",
+      "master's degree"
+    ],
+    "lunch": [
+      "standard",
+      "free/reduced"
+    ],
+    "test_preparation_course": [
+      "none",
+      "completed"
+    ]
+  },
+  "scaler": {
+    "mean": [
+      0.52625,
+      0.47375,
+      0.08625,
+      0.19125,
+      0.325,
+      0.2525,
+      0.145,
+      0.17125,
+      0.19875,
+      0.2275,
+      0.22375,
+      0.12,
+      0.05875,
+      0.65375,
+      0.34625,
+      0.65125,
+      0.34875
+    ],
+    "std": [
+      0.49931046203739815,
+      0.49931046203739815,
+      0.2807328578916263,
+      0.3932854402339349,
+      0.4683748498798799,
+      0.4344464869233034,
+      0.352100837829165,
+      0.3767272720417252,
+      0.399059441061103,
+      0.4192180220362669,
+      0.4167564486603656,
+      0.3249615361854384,
+      0.2351561980896953,
+      0.4757740403805151,
+      0.4757740403805151,
+      0.4765746924669836,
+      0.4765746924669836
+    ]
+  },
+  "linear_regression": {
+    "weights": [
+      1.0215531072773394,
+      -1.0215531072773363,
+      -0.5985450965113488,
+      -0.8935097808280305,
+      -0.5686754329864093,
+      0.7163053490394082,
+      1.3478882755684867,
+      -0.8246047842851378,
+      -1.4257718607705345,
+      0.09643227246436778,
+      0.4518189424724868,
+      1.4903495224208954,
+      0.7084140643746609,
+      2.190381552352727,
+      -2.1903815523527292,
+      -1.8771558532787556,
+      1.877155853278756
+    ],
+    "bias": 68.16916666666665,
+    "pass_threshold": 60
+  },
+  "metadata": {
+    "trained_on_rows": 1000,
+    "train_rows": 800,
+    "test_rows": 200,
+    "linear_train_r2": 0.2543,
+    "linear_train_mae": 9.94,
+    "linear_r2": 0.1622,
+    "linear_mae": 10.49,
+    "linear_rmse": 13.4,
+    "dataset_source": "Kaggle - Students Performance in Exams"
   }
 }
