@@ -1,3 +1,12 @@
+"""
+GradeCompass - Logistic Regression Training & Evaluation
+Owner: Abdul Hayy
+
+Trains Logistic Regression binary classification model predicting whether a student
+is likely to pass (average exam score >= 60) based on demographic attributes.
+Strictly consumes the shared contract in training/preprocessing.py (Fasih).
+"""
+
 import json
 import os
 import sys
@@ -39,12 +48,14 @@ def train_logistic():
     print(f"Confusion Matrix [TN, FP], [FN, TP]: {cm}")
 
     params = {
-        "weights": [float(w) for w in clf.coef_[0]],
-        "bias": float(clf.intercept_[0]),
-        "metrics": {
-            "accuracy": acc,
-            "precision": prec,
-            "recall": rec,
+        "logistic_regression": {
+            "weights": [float(w) for w in clf.coef_[0]],
+            "bias": float(clf.intercept_[0])
+        },
+        "metadata": {
+            "logistic_accuracy": acc,
+            "logistic_precision": prec,
+            "logistic_recall": rec,
             "confusion_matrix": cm,
             "test_samples": len(y_passed_test)
         }
@@ -52,43 +63,47 @@ def train_logistic():
 
     base_dir = os.path.dirname(__file__)
     params_path = os.path.join(base_dir, "logistic_params.json")
-    with open(params_path, "w") as f:
+    with open(params_path, "w", encoding="utf-8") as f:
         json.dump(params, f, indent=2)
     print(f"Saved logistic parameters to {params_path}")
 
-    # Append to model_metrics.md
+    # Format Section 2 for model_metrics.md
     metrics_md_path = os.path.join(base_dir, "model_metrics.md")
-    content = (
-        f"## Logistic Regression Model (Classification — Abdul Hayy)\n\n"
-        f"- **Target**: `passed` (1 if `average_score >= {PASS_THRESHOLD}` else 0)\n"
-        f"- **Algorithm**: `LogisticRegression(random_state=42)`\n"
-        f"- **Features**: 17 one-hot encoded demographic features (StandardScaled)\n"
-        f"- **Test Set Size**: {len(y_passed_test)} samples (20% split)\n\n"
-        f"### Performance Metrics\n"
-        f"| Metric | Score |\n"
-        f"|---|---|\n"
-        f"| **Accuracy** | {acc:.4f} ({acc*100:.2f}%) |\n"
-        f"| **Precision** | {prec:.4f} ({prec*100:.2f}%) |\n"
-        f"| **Recall** | {rec:.4f} ({rec*100:.2f}%) |\n\n"
-        f"### Confusion Matrix\n"
+    section_content = (
+        f"## 2. Logistic Regression (Pass / At-Risk Classification)\n"
+        f"- **Owner:** Abdul Hayy\n"
+        f"- **Target:** Binary pass indicator (`passed = 1 if average_score >= {PASS_THRESHOLD} else 0`)\n"
+        f"- **Algorithm:** `LogisticRegression(random_state=42)`\n"
+        f"- **Features:** 17 one-hot encoded demographic features (`StandardScaled`)\n"
+        f"- **Test Set Size:** {len(y_passed_test)} samples (20% split)\n\n"
+        f"### 2.1 Performance Metrics\n"
+        f"| Metric | Score | Interpretation |\n"
+        f"|---|---|---|\n"
+        f"| **Accuracy** | **{acc:.4f}** ({acc*100:.2f}%) | {int(acc * len(y_passed_test))} out of {len(y_passed_test)} test cases classified correctly. |\n"
+        f"| **Precision** | **{prec:.4f}** ({prec*100:.2f}%) | High reliability when predicting that a student will pass. |\n"
+        f"| **Recall** | **{rec:.4f}** ({rec*100:.2f}%) | Identifies ~{rec*100:.1f}% of all students who achieved a passing score. |\n\n"
+        f"### 2.2 Confusion Matrix (Test Set: {len(y_passed_test)} Students)\n"
         f"```text\n"
         f"                Predicted Fail    Predicted Pass\n"
-        f"Actual Fail:        {cm[0][0]:<15}   {cm[0][1]:<15}\n"
-        f"Actual Pass:        {cm[1][0]:<15}   {cm[1][1]:<15}\n"
-        f"```\n"
+        f"Actual Fail:    {cm[0][0]:<17} {cm[0][1]:<17}\n"
+        f"Actual Pass:    {cm[1][0]:<17} {cm[1][1]:<17}\n"
+        f"```\n\n"
+        f"---\n"
     )
 
     if os.path.exists(metrics_md_path):
         with open(metrics_md_path, "r", encoding="utf-8") as f:
             existing = f.read()
-        if "## Logistic Regression Model" in existing:
-            # Replace existing section
-            parts = existing.split("## Logistic Regression Model")
-            updated = parts[0] + content
+        if "## 2. Logistic Regression" in existing:
+            parts = existing.split("## 2. Logistic Regression")
+            updated = parts[0] + section_content
+        elif "## Logistic Regression" in existing:
+            parts = existing.split("## Logistic Regression")
+            updated = parts[0] + section_content
         else:
-            updated = existing + "\n\n" + content
+            updated = existing.strip() + "\n\n---\n\n" + section_content
     else:
-        updated = "# GradeCompass Model Evaluation Metrics\n\n" + content
+        updated = "# GradeCompass - Model Evaluation Metrics\n\n" + section_content
 
     with open(metrics_md_path, "w", encoding="utf-8") as f:
         f.write(updated)

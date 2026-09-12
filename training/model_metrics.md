@@ -63,13 +63,13 @@ Weights are sorted by magnitude of effect on the predicted exam score:
 |---|---|---|
 | **Accuracy** | **0.6800** (68.00%) | 136 out of 200 test cases classified correctly. |
 | **Precision** | **0.7229** (72.29%) | High reliability when predicting that a student will pass. |
-| **Recall** | **0.8696** (86.96%) | Identifies ~87% of all students who achieved a passing score. |
+| **Recall** | **0.8696** (86.96%) | Identifies ~87.0% of all students who achieved a passing score. |
 
 ### 2.2 Confusion Matrix (Test Set: 200 Students)
 ```text
                 Predicted Fail    Predicted Pass
-Actual Fail:    16                46
-Actual Pass:    18                120
+Actual Fail:    16                46               
+Actual Pass:    18                120              
 ```
 
 ---
