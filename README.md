@@ -4,6 +4,8 @@
 
 GradeCompass is a lightweight machine learning application that predicts student exam outcomes from background attributes using models trained on the public Kaggle **"Students Performance in Exams"** dataset (1,000 students).
 
+Dual models evaluate continuous expected score (**Linear Regression**) and pass/risk likelihood (**Logistic Regression**) directly in the browser with zero server runtime dependencies.
+
 ---
 
 ## 👥 Team & Responsibilities
@@ -60,7 +62,32 @@ All features are standardized with a single shared `StandardScaler` fitted exclu
 
 ---
 
-## 🚀 Setup & Training Instructions
+## 📈 Model Performance Summary
+
+Evaluated on the held-out 20% test set (200 students):
+
+### 1. Linear Regression (Fasih)
+- **Train Set (800 rows):** R² = 0.2543, MAE = 9.94 points
+- **Test Set (200 rows):** R² = **0.1622**, MAE = **10.49 points**, RMSE = **13.40 points**
+- **Baseline Intercept (Bias):** 68.17 points
+- **Top Drivers:** `lunch_standard` (+2.19), `test_prep_completed` (+1.88), `parent_edu_bachelors_degree` (+1.49)
+
+### 2. Logistic Regression (Abdul Hayy)
+- **Accuracy:** **68.00%** (136/200 correct)
+- **Precision:** **72.29%**
+- **Recall:** **86.96%**
+- **Confusion Matrix:**
+  ```text
+                  Predicted Fail    Predicted Pass
+  Actual Fail:    16                46
+  Actual Pass:    18                120
+  ```
+
+*(Detailed metrics and coefficient analysis are available in `training/model_metrics.md` and `web/about.html`.)*
+
+---
+
+## 🚀 Getting Started & Local Development
 
 ### 1. Environment Setup
 Clone the repository and install the Python dependencies:
@@ -71,78 +98,65 @@ cd GradeCompass
 pip install -r training/requirements.txt
 ```
 
-### 2. Verify Preprocessing Pipeline (Fasih)
-Run the shared preprocessing module to verify data validation and encoding:
-
+### 2. Training Models & Generating Assets
 ```bash
+# Verify shared preprocessing pipeline
 python training/preprocessing.py
-```
 
-### 3. Train Linear Regression Model (Fasih)
-Train the ordinary least squares linear regression model and compute evaluation metrics:
-
-```bash
+# Train Linear Regression model (Fasih)
 python training/train_linear.py
-```
-This produces:
-- `training/linear_params.json` (weights, bias, scaler mean/std, metadata)
-- `training/model_metrics.md` (detailed evaluation report)
 
-### 4. Train Logistic Regression Model (Abdul Hayy)
-Run Abdul Hayy's logistic regression training script (uses the identical split and scaler):
-
-```bash
+# Train Logistic Regression model (Abdul Hayy)
 python training/train_logistic.py
-```
-This produces `training/logistic_params.json`.
 
-### 5. Merge Model Parameters (Fasih)
-Compile both models' parameters into the browser-ready runtime JSON:
-
-```bash
+# Merge parameters into web/assets/model_params.json
 python training/merge_params.py
 ```
-Outputs:
-- `web/assets/model_params.json` (validated against PRD Section 3.3 schema)
-- `web/assets/model_metrics.md`
+
+### 3. Running Automated Verification
+```bash
+# Run model parity and mathematical validation tests
+python tests/test_inference.py
+
+# Run JavaScript engine tests (requires Node.js)
+node tests/test_inference.js
+```
+
+### 4. Running the Web Application
+Because GradeCompass loads `web/assets/model_params.json` via `fetch()`, run any local static HTTP server:
+
+```bash
+# Using Python
+python -m http.server 8000 --directory web
+
+# Or using Node
+npx serve web
+```
+Then open `http://localhost:8000` in your browser.
 
 ---
 
-## 📈 Model Performance Summary
+## 🖥️ Web UI Features (Abdul Hayy)
 
-### Linear Regression (Fasih)
-- **Train Set (800 rows):** R² = 0.2543, MAE = 9.94 points
-- **Test Set (200 rows):** R² = **0.1622**, MAE = **10.49 points**, RMSE = **13.40 points**
-- **Baseline Intercept (Bias):** 68.17 points
-- **Top Positive Drivers:** `lunch_standard` (+2.19), `test_prep_completed` (+1.88), `parent_edu_bachelors_degree` (+1.49)
-- **Top Negative Drivers:** `lunch_free_reduced` (-2.19), `test_prep_none` (-1.88), `parent_edu_high_school` (-1.43)
-
-*(Detailed metrics and coefficient analysis are available in `training/model_metrics.md`.)*
-
-### Logistic Regression (Abdul Hayy)
-- *Pending execution of `training/train_logistic.py`.*
+- **Dynamic Select Controls:** The 5 dropdown menus are populated directly from `model_params.json`'s categorical options schema (single source of truth).
+- **Real-Time Live Inference:** Dropdown changes automatically trigger immediate client-side inference without page reloads or submit buttons.
+- **Score Progress Gauge:** Visual circular SVG gauge displaying expected score with color cues (green &ge; 60, red &lt; 60).
+- **Pass / At-Risk Classification Badge:** Semantic badge and probability percentage indicator.
+- **Sensitivity Analysis Bar Chart:** Custom HTML5 `<canvas>` chart dynamically comparing exam score with vs. without a test prep course, holding all other student attributes constant.
+- **Responsive & Accessible:** Built mobile-first using pure CSS flexbox and grid, with responsive scaling for high-DPI (Retina) screens.
+- **Reset Functionality:** Restores default input combinations with one click.
+- **About Page:** Dedicated documentation page (`web/about.html`) presenting methodology, confusion matrix, metrics table, and algorithmic limitations.
 
 ---
 
 ## 🌐 Deployment Guide (Vercel - Fasih)
 
-GradeCompass runs entirely client-side with static assets. No backend server or serverless functions are required at runtime.
+GradeCompass is a 100% static application designed for zero-config Vercel deployment:
 
-### Deploying to Vercel
-1. Push all code to GitHub.
-2. In [Vercel Dashboard](https://vercel.com):
-   - Click **Add New... -> Project** and import the `GradeCompass` repository.
-   - **Root Directory:** `./web` (or leave root with `vercel.json` configured).
-   - **Framework Preset:** `Other`.
-   - **Build Command:** None (static site).
-   - **Output Directory:** `web` (configured via `vercel.json`).
-3. Click **Deploy**.
-
-### Verification
-After deployment:
-1. Open the deployed application URL in your browser.
-2. Open DevTools (F12) -> **Network Tab** and verify that `assets/model_params.json` returns **HTTP 200 OK**.
-3. Confirm dropdown changes trigger instant client-side predictions without console errors.
+1. Connect repository on [Vercel](https://vercel.com).
+2. Set **Root Directory** to `web` (or leave at root, since `vercel.json` specifies `"outputDirectory": "web"`).
+3. Set **Framework Preset** to `Other` (Static Site).
+4. No build command or environment variables required. Click **Deploy**.
 
 ---
 

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About the Model - GradeCompass</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+</head>
+<body>
+  <!-- Global Header -->
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🧭</div>
+        <div class="brand-title">Grade<span>Compass</span></div>
+      </a>
+      <nav>
+        <a href="index.html">Predictor</a>
+        <a href="about.html" class="active">About the Model</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="about-container">
+      <div class="card">
+        <section class="about-section">
+          <h1>About the Machine Learning Models</h1>
+          <p>GradeCompass demonstrates end-to-end comparative machine learning using a public educational dataset. Two complementary models were trained on identical demographic background features:</p>
+          <ul>
+            <li><strong>Linear Regression (Regression):</strong> Predicts the continuous expected average exam score across math, reading, and writing (0–100 scale).</li>
+            <li><strong>Logistic Regression (Binary Classification):</strong> Predicts the probability of a student passing (defined as achieving an average score &ge; 60/100).</li>
+          </ul>
+        </section>
+
+        <section class="about-section">
+          <h2>1. Dataset &amp; Problem Framing</h2>
+          <p>The models were trained on the public Kaggle <em>Students Performance in Exams</em> dataset, containing 1,000 student records with no missing values.</p>
+          <p><strong>Crucial Design Choice:</strong> Individual exam scores (math, reading, writing) are used strictly to derive target labels and are <em>never</em> fed into the models as predictors. Inputs are exclusively the 5 categorical background attributes:</p>
+          <ul>
+            <li><strong>Gender:</strong> Female, Male</li>
+            <li><strong>Race / Ethnicity:</strong> Groups A, B, C, D, E</li>
+            <li><strong>Parental Level of Education:</strong> Some High School, High School, Some College, Associate's Degree, Bachelor's Degree, Master's Degree</li>
+            <li><strong>Lunch Type:</strong> Standard, Free/Reduced (proxy for household socioeconomic background)</li>
+            <li><strong>Test Preparation Course:</strong> None, Completed</li>
+          </ul>
+        </section>
+
+        <section class="about-section">
+          <h2>2. Feature Engineering &amp; Data Contract</h2>
+          <p>The 5 categorical variables are converted into <strong>17 binary features</strong> via one-hot encoding in a strictly ordered sequence, followed by feature standardization using scikit-learn's <code>StandardScaler</code> fit exclusively on an 80% training split (random_state=42).</p>
+          <p>All weights, biases, means, and standard deviations are exported to a single portable JSON file (<code>model_params.json</code>), allowing client-side inference directly inside the user's browser with zero runtime backend dependency.</p>
+        </section>
+
+        <section class="about-section">
+          <h2>3. Model Performance &amp; Evaluation</h2>
+          <p>Evaluation conducted on the held-out 20% test set (200 students):</p>
+
+          <h3>Linear Regression (Average Score Prediction)</h3>
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Evaluation Metric</th>
+                <th>Result</th>
+                <th>Interpretation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>R&sup2; Score</strong></td>
+                <td>0.1622</td>
+                <td>Demographic attributes alone account for ~16.2% of exam score variance. This modest R&sup2; is standard and honest: individual study habits, attendance, and teaching quality account for the remaining variance.</td>
+              </tr>
+              <tr>
+                <td><strong>MAE (Mean Absolute Error)</strong></td>
+                <td>10.49 points</td>
+                <td>Predictions on average fall within ~10.5 points of actual exam scores.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Logistic Regression (Pass / At-Risk Classification)</h3>
+          <p>Pass threshold: <strong>60.0 / 100</strong>.</p>
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Classification Metric</th>
+                <th>Result</th>
+                <th>Interpretation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Accuracy</strong></td>
+                <td>68.00%</td>
+                <td>Correctly classifies 68 out of 100 students in the test set.</td>
+              </tr>
+              <tr>
+                <td><strong>Precision</strong></td>
+                <td>72.29%</td>
+                <td>When the model predicts "Likely to Pass", it is correct 72.3% of the time.</td>
+              </tr>
+              <tr>
+                <td><strong>Recall</strong></td>
+                <td>86.96%</td>
+                <td>The model identifies 87.0% of all students who actually passed.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Confusion Matrix (Test Set: 200 Students)</h3>
+          <div class="code-block">
+                Predicted At-Risk    Predicted Pass
+Actual Fail:    16                   46
+Actual Pass:    18                   120</div>
+        </section>
+
+        <section class="about-section">
+          <h2>4. Team Roles &amp; Responsibilities</h2>
+          <ul>
+            <li><strong>Fasih:</strong> Data preprocessing contract, Linear Regression model training &amp; metrics, parameter merge script, and Vercel deployment.</li>
+            <li><strong>Abdul Hayy:</strong> Logistic Regression model training &amp; metrics, browser client-side inference engine (<code>model.js</code>), interactive web UI (<code>ui.js</code>), comparative test prep bar chart (<code>chart.js</code>), and documentation.</li>
+          </ul>
+        </section>
+
+        <section class="about-section">
+          <h2>5. Ethical Considerations &amp; Algorithmic Limits</h2>
+          <div class="disclaimer-card" style="margin-top: 0.5rem;">
+            <div class="disclaimer-icon">ℹ️</div>
+            <div class="disclaimer-text">
+              <strong>Correlation vs. Causation:</strong> Statistical models reflect aggregate patterns in historical data, including structural inequities such as socioeconomic disparities. They do not represent innate ability or deterministic outcomes. GradeCompass is designed as an educational tool to study how linear and logistic regression operate side by side.
+            </div>
+          </div>
+        </section>
+
+        <div style="margin-top: 2rem; text-align: center;">
+          <a href="index.html" class="btn-secondary" style="text-decoration: none; display: inline-block;">&larr; Back to Predictor</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Global Footer -->
+  <footer>
+    <div class="footer-content">
+      <div>GradeCompass &copy; 2026 &bull; Developed by Fasih &amp; Abdul Hayy</div>
+      <div><a href="index.html" style="color: var(--primary); text-decoration: none;">Interactive Predictor</a></div>
+    </div>
+  </footer>
+</body>
+</html>

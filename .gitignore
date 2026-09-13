@@ -1,12 +1,16 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
 *.so
 .Python
 env/
 venv/
 .venv/
+ENV/
+build/
+dist/
+*.egg-info/
 
 # Environment variables
 .env

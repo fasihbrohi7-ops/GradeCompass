@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeCompass - Student Performance & Risk Predictor</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+</head>
+<body>
+  <!-- Global Header -->
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🧭</div>
+        <div class="brand-title">Grade<span>Compass</span></div>
+      </a>
+      <nav>
+        <a href="index.html" class="active">Predictor</a>
+        <a href="about.html">About the Model</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <section class="hero">
+      <h1>Student Performance & Risk Predictor</h1>
+      <p>Explore machine learning predictions of expected exam scores and pass/risk outcomes across demographic and preparation profiles.</p>
+    </section>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="state-box">
+      <div class="spinner"></div>
+      <p>Loading model parameters and initializing predictor...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="state-box" style="display: none;">
+      <div class="error-title">Failed to Load Model</div>
+      <p id="error-message">Unable to fetch model parameters. Please ensure assets/model_params.json is available.</p>
+    </div>
+
+    <!-- Interactive App Layout -->
+    <div id="app-content" style="display: none;">
+      <div class="dashboard-grid">
+        <!-- Input Column: Demographic & Background Attributes -->
+        <section class="card">
+          <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Student Profile
+          </h2>
+          <p class="card-subtitle">Adjust background attributes to update predictions in real time.</p>
+
+          <form id="demographics-form" onsubmit="return false;">
+            <!-- 1. Gender -->
+            <div class="form-group">
+              <label for="select-gender" class="form-label">Gender</label>
+              <select id="select-gender" class="form-select" aria-label="Gender">
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
+            </div>
+
+            <!-- 2. Race / Ethnicity -->
+            <div class="form-group">
+              <label for="select-race_ethnicity" class="form-label">Race / Ethnicity</label>
+              <select id="select-race_ethnicity" class="form-select" aria-label="Race and Ethnicity Group">
+                <option value="group A">Group A</option>
+                <option value="group B">Group B</option>
+                <option value="group C">Group C</option>
+                <option value="group D">Group D</option>
+                <option value="group E">Group E</option>
+              </select>
+            </div>
+
+            <!-- 3. Parental Education -->
+            <div class="form-group">
+              <label for="select-parental_education" class="form-label">Parental Level of Education</label>
+              <select id="select-parental_education" class="form-select" aria-label="Parental Education Level">
+                <option value="some high school">Some High School</option>
+                <option value="high school">High School</option>
+                <option value="some college">Some College</option>
+                <option value="associate's degree">Associate's Degree</option>
+                <option value="bachelor's degree">Bachelor's Degree</option>
+                <option value="master's degree">Master's Degree</option>
+              </select>
+            </div>
+
+            <!-- 4. Lunch Type -->
+            <div class="form-group">
+              <label for="select-lunch" class="form-label">Lunch Program (Socioeconomic Indicator)</label>
+              <select id="select-lunch" class="form-select" aria-label="Lunch Program Type">
+                <option value="standard">Standard Lunch</option>
+                <option value="free/reduced">Free / Reduced Lunch</option>
+              </select>
+            </div>
+
+            <!-- 5. Test Preparation Course -->
+            <div class="form-group">
+              <label for="select-test_preparation_course" class="form-label">Test Preparation Course</label>
+              <select id="select-test_preparation_course" class="form-select" aria-label="Test Preparation Course Status">
+                <option value="none">None (No Prep Course)</option>
+                <option value="completed">Completed Course</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="btn-reset" class="btn-secondary" title="Reset all dropdowns to default">Reset Selections</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Output Column: Live Predictions & Insights -->
+        <div class="results-stack">
+          <!-- Primary Prediction Panel -->
+          <section class="card">
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              Live Predictions
+            </h2>
+            <p class="card-subtitle">Dual-model inference evaluated instantly in your browser.</p>
+
+            <div class="prediction-panel">
+              <!-- Linear Regression: Expected Average Score -->
+              <div class="metric-tile">
+                <span class="metric-label">Predicted Average Score</span>
+                <div class="gauge-container">
+                  <svg class="gauge-svg" width="130" height="130" viewBox="0 0 130 130">
+                    <circle class="gauge-bg" cx="65" cy="65" r="54" />
+                    <circle id="score-gauge-circle" class="gauge-circle" cx="65" cy="65" r="54" />
+                  </svg>
+                  <div class="gauge-center-text">
+                    <div id="score-number" class="gauge-value">--</div>
+                    <div class="gauge-unit">out of 100</div>
+                  </div>
+                </div>
+                <div class="metric-meta">Linear Regression Model</div>
+              </div>
+
+              <!-- Logistic Regression: Pass / At-Risk Classification -->
+              <div class="metric-tile">
+                <span class="metric-label">Pass / Risk Status</span>
+                <div id="status-badge" class="badge badge-pass">Calculating...</div>
+                
+                <div class="prob-container">
+                  <div class="prob-header">
+                    <span>Pass Probability:</span>
+                    <strong id="probability-number">--%</strong>
+                  </div>
+                  <div class="prob-bar-bg">
+                    <div id="probability-bar" class="prob-fill pass" style="width: 50%;"></div>
+                  </div>
+                </div>
+                <div class="metric-meta">Logistic Regression (Threshold: 60)</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Test Preparation Course Sensitivity Chart -->
+          <section class="card chart-card">
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Test Preparation Course Impact
+            </h2>
+            <p class="card-subtitle">Predicted average score comparing <em>No Course</em> vs. <em>Completed</em> for this specific profile.</p>
+
+            <div class="chart-wrapper">
+              <canvas id="prep-impact-chart" width="400" height="220"></canvas>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Visible Educational Disclaimer (PRD Requirement U10) -->
+      <div class="disclaimer-card" role="note">
+        <div class="disclaimer-icon">⚠️</div>
+        <div class="disclaimer-text">
+          <strong>Educational & Statistical Disclaimer:</strong> Predictions reflect statistical correlations identified in a public historical sample dataset (Kaggle Students Performance in Exams). They are intended solely for educational demonstration of linear and logistic regression concepts and must <strong>not</strong> be interpreted as claims that demographic attributes causally determine individual capability or academic achievement.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Global Footer -->
+  <footer>
+    <div class="footer-content">
+      <div>GradeCompass &copy; 2026 &bull; Developed by Fasih &amp; Abdul Hayy</div>
+      <div><a href="about.html" style="color: var(--primary); text-decoration: none;">Model Performance &amp; Evaluation</a></div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="./js/model.js"></script>
+  <script src="./js/chart.js"></script>
+  <script src="./js/ui.js"></script>
+</body>
+</html>

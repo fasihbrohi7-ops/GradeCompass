@@ -12,6 +12,7 @@ Validates the merged payload against PRD-TRD Section 3.3 schema.
 """
 
 import json
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -20,10 +21,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 TRAINING_DIR = BASE_DIR / "training"
 WEB_ASSETS_DIR = BASE_DIR / "web" / "assets"
 
+sys.path.insert(0, str(TRAINING_DIR))
+from preprocessing import CATEGORICAL_OPTIONS, FEATURE_ORDER, PASS_THRESHOLD
+
 
 def merge_model_parameters():
     print("==================================================")
-    print("GradeCompass: Model Parameters Merge (Fasih)")
+    print("GradeCompass: Model Parameters Merge (Fasih & Abdul Hayy)")
     print("==================================================")
 
     linear_params_path = TRAINING_DIR / "linear_params.json"
@@ -33,7 +37,6 @@ def merge_model_parameters():
     if not linear_params_path.exists():
         print("[!] linear_params.json not found. Running training/train_linear.py...")
         from train_linear import train_linear_model
-
         linear_data = train_linear_model()
     else:
         with open(linear_params_path, "r", encoding="utf-8") as f:
@@ -41,55 +44,73 @@ def merge_model_parameters():
         print(f"[OK] Loaded Linear Regression parameters from {linear_params_path}")
 
     # 2. Check / Load Logistic Regression Parameters (Abdul Hayy)
-    logistic_weights = None
-    logistic_bias = 0.0
-    logistic_accuracy = 0.0
-    logistic_precision = 0.0
-    logistic_recall = 0.0
+    if not logistic_params_path.exists():
+        print("[!] logistic_params.json not found. Running training/train_logistic.py...")
+        from train_logistic import train_logistic
+        train_logistic()
 
-    if logistic_params_path.exists():
-        with open(logistic_params_path, "r", encoding="utf-8") as f:
-            logistic_data = json.load(f)
-        logistic_weights = logistic_data.get("logistic_regression", {}).get("weights")
-        logistic_bias = float(logistic_data.get("logistic_regression", {}).get("bias", 0.0))
-        meta = logistic_data.get("metadata", {})
-        logistic_accuracy = float(meta.get("logistic_accuracy", 0.0))
-        logistic_precision = float(meta.get("logistic_precision", 0.0))
-        logistic_recall = float(meta.get("logistic_recall", 0.0))
-        print(f"[OK] Loaded Logistic Regression parameters from {logistic_params_path}")
+    with open(logistic_params_path, "r", encoding="utf-8") as f:
+        logistic_data = json.load(f)
+    print(f"[OK] Loaded Logistic Regression parameters from {logistic_params_path}")
+
+    # Extract logistic weights & bias (handles both nested and direct structure)
+    if "logistic_regression" in logistic_data:
+        logistic_weights = logistic_data["logistic_regression"]["weights"]
+        logistic_bias = float(logistic_data["logistic_regression"]["bias"])
     else:
-        print("[INFO] logistic_params.json not found yet (Abdul Hayy's model pending).")
-        print("       Populating schema-compliant placeholder for logistic regression so UI can run.")
-        logistic_weights = [0.0] * 17
-        logistic_bias = 0.0
+        logistic_weights = logistic_data.get("weights", [0.0] * 17)
+        logistic_bias = float(logistic_data.get("bias", 0.0))
+
+    meta = logistic_data.get("metadata") or logistic_data.get("metrics") or {}
+    logistic_accuracy = float(meta.get("logistic_accuracy", meta.get("accuracy", 0.0)))
+    logistic_precision = float(meta.get("logistic_precision", meta.get("precision", 0.0)))
+    logistic_recall = float(meta.get("logistic_recall", meta.get("recall", 0.0)))
+
+    # Extract linear weights & bias
+    if "linear_regression" in linear_data:
+        linear_weights = linear_data["linear_regression"]["weights"]
+        linear_bias = float(linear_data["linear_regression"]["bias"])
+        pass_thresh = int(linear_data["linear_regression"].get("pass_threshold", PASS_THRESHOLD))
+    else:
+        linear_weights = linear_data.get("weights")
+        linear_bias = float(linear_data.get("bias", 0.0))
+        pass_thresh = int(linear_data.get("pass_threshold", PASS_THRESHOLD))
+
+    scaler = linear_data.get("scaler")
+    if not scaler:
+        from preprocessing import get_scaler, load_and_prepare
+        from sklearn.model_selection import train_test_split
+        X, y_score, y_passed = load_and_prepare()
+        X_train, _, _, _, _, _ = train_test_split(X, y_score, y_passed, test_size=0.2, random_state=42)
+        fit_scaler = get_scaler(X_train)
+        scaler = {
+            "mean": [float(m) for m in fit_scaler.mean_],
+            "std": [float(s) for s in fit_scaler.scale_]
+        }
+
+    linear_meta = linear_data.get("metadata") or linear_data.get("metrics") or {}
 
     # 3. Assemble final merged payload according to Section 3.3
-    feature_order = linear_data["feature_order"]
-    categorical_options = linear_data["categorical_options"]
-    scaler = linear_data["scaler"]
-    linear_reg = linear_data["linear_regression"]
-    linear_meta = linear_data.get("metadata", {})
-
     merged_payload = {
-        "feature_order": feature_order,
-        "categorical_options": categorical_options,
+        "feature_order": FEATURE_ORDER,
+        "categorical_options": CATEGORICAL_OPTIONS,
         "scaler": {
             "mean": scaler["mean"],
             "std": scaler["std"],
         },
         "linear_regression": {
-            "weights": linear_reg["weights"],
-            "bias": float(linear_reg["bias"]),
-            "pass_threshold": int(linear_reg.get("pass_threshold", 60)),
+            "weights": linear_weights,
+            "bias": linear_bias,
+            "pass_threshold": pass_thresh,
         },
         "logistic_regression": {
             "weights": logistic_weights,
-            "bias": float(logistic_bias),
+            "bias": logistic_bias,
         },
         "metadata": {
             "trained_on_rows": int(linear_meta.get("trained_on_rows", 1000)),
-            "linear_r2": float(linear_meta.get("linear_r2", 0.0)),
-            "linear_mae": float(linear_meta.get("linear_mae", 0.0)),
+            "linear_r2": float(linear_meta.get("linear_r2", linear_meta.get("r2", 0.0))),
+            "linear_mae": float(linear_meta.get("linear_mae", linear_meta.get("mae", 0.0))),
             "logistic_accuracy": float(logistic_accuracy),
             "logistic_precision": float(logistic_precision),
             "logistic_recall": float(logistic_recall),
