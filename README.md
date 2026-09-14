@@ -1,11 +1,11 @@
-﻿# GradeCompass 🎓🧭
+# GradeCompass 🎓🧭
 
 > **Interactive Client-Side Machine Learning for Student Exam Performance & Pass/Fail Prediction**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![JavaScript Vanilla](https://img.shields.io/badge/javascript-vanilla%20ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Deploy on Vercel](https://img.shields.io/badge/deploy-vercel-black.svg?logo=vercel)](https://vercel.com)
+[![Deploy on Vercel](https://img.shields.io/badge/deploy-vercel-black.svg?logo=vercel)](https://grade-compass-fasih.vercel.app)
 [![Status: Production Ready](https://img.shields.io/badge/status-production%20ready-brightgreen.svg)]()
 
 **GradeCompass** is a lightweight, zero-dependency educational machine learning application that predicts student exam outcomes from background attributes using models trained on the public Kaggle **"Students Performance in Exams"** dataset ($1,000$ students).
@@ -16,7 +16,7 @@ The application evaluates dual models simultaneously—**Linear Regression** (co
 
 ## 🧭 Live Demo & Quick Links
 
-- **Interactive Web App**: Deployable on Vercel via [`vercel.json`](vercel.json).
+- **Live Production URL**: **[https://grade-compass-fasih.vercel.app](https://grade-compass-fasih.vercel.app)**
 - **User Guide**: [Complete End-User Walkthrough](docs/USER_GUIDE.md)
 - **Product Requirements**: [PRD Specification](docs/PRD.md)
 - **Technical Requirements**: [TRD Specification](docs/TRD.md)
